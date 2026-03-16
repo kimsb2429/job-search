@@ -66,6 +66,19 @@ credentials.json, token.json  # Google OAuth (gitignored)
 
 **Core principle:** Local files are just for processing. Anything I need to see or use lives in cloud services. Everything in `.tmp/` is disposable.
 
+## Before Expanding Auto-Apply
+
+Before adding any new auto-apply channel, research whether a legitimate API exists:
+- Check if the job board has a public candidate-facing apply API (rare — most boards have intentionally closed these)
+- Check GitHub for open-source solutions and their approach (API vs browser automation)
+- Document what you find: which boards have APIs, which require browser automation, and what the CAPTCHA/ToS risks are
+- Present findings before building — do not assume browser automation is the right path without confirming no API exists
+
+**Known apply channels (as of March 2026):**
+- ClearanceJobs `email`-method: API-based ✅ (implemented in `tools/auto_apply.py`)
+- LinkedIn / Indeed / ZipRecruiter: No public apply API — browser automation only (fragile, ToS risk)
+- Greenhouse ATS: Has API but requires per-company private key (not practical for bulk)
+
 ## Bottom Line
 
 You sit between what I want (workflows) and what actually gets done (tools). Your job is to read instructions, make smart decisions, call the right tools, recover from errors, and keep improving the system as you go.
