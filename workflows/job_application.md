@@ -116,6 +116,37 @@ uv run tools/auto_apply.py --threshold 7
 uv run tools/auto_apply.py --threshold 7 --dry-run
 ```
 
+### Step 5 — Send email digest (manual apply jobs)
+```bash
+uv run tools/notify.py
+```
+
+**What it does:**
+- Reads all rows with Status == "New" from the Google Sheet
+- Sends an HTML email to kimsb2429@gmail.com with each job as a card (title, company, score, reasoning, Apply button)
+- Each **Apply →** button is a tracking link: clicking it marks the row as "Applied" in the sheet, then redirects to the job listing
+- After sending, marks all notified rows as "Pending" so they don't repeat in future digests
+
+**Status flow:**
+- `New` → just scraped, not yet notified
+- `Pending` → in digest, awaiting your manual apply
+- `Applied` → done (set by clicking Apply → in email, or by auto_apply.py for CJ email-method jobs)
+
+**One-time setup (Google Apps Script redirect handler):**
+1. Open the Job Tracker Google Sheet → Extensions → Apps Script
+2. Paste contents of `tools/apps_script_tracker.js` → Save
+3. Deploy → New deployment → Type: Web app → Execute as: Me → Who has access: Anyone → Deploy → Authorize
+4. Copy the Web app URL → add to `.env`:
+   ```
+   APPS_SCRIPT_URL=https://script.google.com/macros/s/.../exec
+   ```
+5. Delete `token.json` (re-auth needed to add Gmail scope) → run `uv run tools/notify.py` → authorize in browser
+
+**Dry run (preview without sending):**
+```bash
+uv run tools/notify.py --dry-run
+```
+
 ## Outputs
 - **Google Sheet "Job Tracker"** with columns:
   - Title | Company | Location | Remote | Salary Min | Salary Max | Date Posted
@@ -126,7 +157,7 @@ uv run tools/auto_apply.py --threshold 7 --dry-run
 Ask Claude:
 > "Run the job application workflow"
 
-Claude will execute Steps 1–4 in order and return the sheet URL plus a summary of applications submitted.
+Claude will execute Steps 1–5 in order and return the sheet URL, a summary of auto-applied jobs, and confirm the digest email was sent.
 
 ## Iterating on Search
 To refine what gets surfaced, adjust:

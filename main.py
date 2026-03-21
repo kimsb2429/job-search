@@ -1,5 +1,5 @@
 def main():
-    print("Hello from health-dispatch!")
+    print("Hello from job-search!")
 
 
 if __name__ == "__main__":

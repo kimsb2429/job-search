@@ -1,12 +1,14 @@
 # Workflows
 
-This directory contains Markdown SOPs (Standard Operating Procedures) that define objectives, required inputs, which tools to use, expected outputs, and how to handle edge cases.
+Workflows are multi-step pipelines that require structured documentation. They differ from skills (simple, self-contained actions) in that they involve multiple tools, have defined inputs/outputs, and need edge case handling.
 
-Each workflow is written in plain language and guides the agent on how to coordinate execution for a specific task.
+## When something is a workflow (not a skill)
+
+If it involves multiple steps, multiple tools, or has meaningful edge cases — it's a workflow.
 
 ## Creating a Workflow
 
-1. Create a new `.md` file with a descriptive name (e.g., `scrape_website.md`, `export_to_sheets.md`)
+1. Create a new `.md` file with a descriptive name (e.g., `job_application.md`)
 2. Include:
    - **Objective**: What the workflow accomplishes
    - **Inputs**: What data/parameters are required
