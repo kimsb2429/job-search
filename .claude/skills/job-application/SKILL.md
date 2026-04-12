@@ -1,7 +1,13 @@
+---
+name: job-application
+description: Discover remote data engineering jobs on Indeed/Glassdoor/ZipRecruiter/ClearanceJobs, score against profile, sync to Google Sheet, auto-apply where possible, and send email digest for manual applications.
+user-invocable: true
+---
+
 # Workflow: Job Application Pipeline
 
 ## Objective
-Discover remote data engineering / data migration / AI automation jobs on Indeed, score them against Jae's profile, and sync new listings to a Google Sheet for manual review and application.
+Discover remote data engineering / data migration / AI automation / AI workflow jobs on Indeed, score them against Jae's profile, and sync new listings to a Google Sheet for manual review and application.
 
 ## Candidate Profile
 - **Name:** Jae Kim — Data Architect / Data Engineer
@@ -10,7 +16,8 @@ Discover remote data engineering / data migration / AI automation jobs on Indeed
 - **Core Stack:** PostgreSQL, PL/SQL, Python, AWS (Glue, DMS, Redshift, Lambda), Java/Spring, Jenkins, Terraform
 - **Strengths:** Legacy-to-cloud data migration, microservices/strangler pattern, REST API security, stakeholder leadership, event-driven pipelines
 - **Background:** Princeton BA Chemistry, WashU MFA/PhD (Digital Humanities), 10+ years in data engineering
-- **Target roles:** Data Engineer, Data Migration Engineer, AI Automation Engineer, Data Architect
+- **Target roles:** Data Engineer, Data Migration Engineer, AI Automation Engineer, AI Workflow Engineer, AI Engineer, Data Architect
+- **Open to:** Full-time, part-time, fractional, and contract roles
 - **Salary:** Open
 - **Location filter:** Remote only
 
@@ -69,6 +76,7 @@ Read `.tmp/jobs_raw.json` and for each job, score against Jae's actual resume.
 - NYC on-site or hybrid: acceptable, no scoring penalty
 - Europe (London, Berlin, Amsterdam, etc.): acceptable, no scoring penalty
 - Sales, support, management-only, or recruiter roles
+- Principal or Lead-level titles (too senior)
 - Duplicate posting (same job, different city)
 - Posted > 30 days ago
 
@@ -155,14 +163,14 @@ uv run tools/notify.py --dry-run
 
 ## Running the Full Pipeline
 Ask Claude:
-> "Run the job application workflow"
+> "Run the job application pipeline"
 
 Claude will execute Steps 1–5 in order and return the sheet URL, a summary of auto-applied jobs, and confirm the digest email was sent.
 
 ## Iterating on Search
 To refine what gets surfaced, adjust:
 - **Search terms:** Edit `DEFAULT_SEARCH_TERMS` in `job_scraper.py`
-- **Score threshold:** Currently filters < 5. Change in workflow Step 2.
+- **Score threshold:** Currently filters < 5. Change in Step 2.
 - **Scoring criteria:** Edit the scoring rubric in Step 2 above
 - **Time window:** Change `--hours` flag (72 = 3 days, 168 = 1 week)
 
