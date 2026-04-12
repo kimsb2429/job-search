@@ -39,6 +39,11 @@ SEARCH_TERMS = [
     "PostgreSQL engineer",
     "Redshift engineer",
     "AI automation engineer",
+    "AI workflow engineer",
+    "AI operations engineer",
+    "AI integration engineer",
+    "LLM engineer",
+    "AI engineer",
 ]
 
 BASE_URL = "https://api.clearancejobs.com/api/v1"

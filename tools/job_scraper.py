@@ -35,6 +35,16 @@ DEFAULT_SEARCH_TERMS = [
     "Redshift data engineer",
     "PostgreSQL data engineer",
     "AI automation engineer remote",
+    "AI workflow engineer remote",
+    "AI operations engineer remote",
+    "AI integration engineer remote",
+    "automation engineer AI remote",
+    "LLM engineer remote",
+    "AI engineer remote",
+    "fractional data engineer",
+    "fractional AI engineer",
+    "part time data engineer remote",
+    "contract AI engineer remote",
 ]
 
 DEFAULT_SITES = ["indeed", "glassdoor", "zip_recruiter"]
