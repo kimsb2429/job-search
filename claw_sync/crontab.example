@@ -1,0 +1,7 @@
+# Claw sync — runs daily at 8:30am local, just before VPS discovery at 9am ET
+#
+# Install with: crontab -e
+#
+# Adjust path to wherever you cloned this repo.
+
+30 8 * * * /Users/jaekim/path/to/job-search/claw_sync/run_and_push.sh
