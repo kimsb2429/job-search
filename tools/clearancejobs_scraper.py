@@ -30,6 +30,21 @@ from dotenv import load_dotenv
 load_dotenv()
 
 SEARCH_TERMS = [
+    # Prioritized: AI engineer roles
+    "AI engineer",
+    "AI automation engineer",
+    "AI workflow engineer",
+    "AI operations engineer",
+    "AI integration engineer",
+    "AI applications engineer",
+    "AI platform engineer",
+    "applied AI engineer",
+    "generative AI engineer",
+    "LLM engineer",
+    "LLM applications engineer",
+    "agentic AI engineer",
+    "AI solutions engineer",
+    # Data engineering (secondary)
     "data engineer",
     "data migration engineer",
     "data platform engineer",
@@ -38,12 +53,6 @@ SEARCH_TERMS = [
     "AWS data engineer",
     "PostgreSQL engineer",
     "Redshift engineer",
-    "AI automation engineer",
-    "AI workflow engineer",
-    "AI operations engineer",
-    "AI integration engineer",
-    "LLM engineer",
-    "AI engineer",
 ]
 
 BASE_URL = "https://api.clearancejobs.com/api/v1"
@@ -95,6 +104,25 @@ def is_acceptable_location(locations, is_telecommute):
                                        "barcelona", "madrid", "lisbon", "zurich"]):
             return True
     return False
+
+
+def fetch_full_description(session, job_id):
+    """Fetch the full job-detail page and return its HTML description (or '' on failure)."""
+    try:
+        r = session.get(f"{BASE_URL}/jobs/{job_id}", timeout=15)
+        if r.status_code != 200:
+            return ""
+        return (r.json().get("description") or "")
+    except Exception:
+        return ""
+
+
+def extract_job_id(job_url):
+    """https://www.clearancejobs.com/jobs/8875570/slug → '8875570'."""
+    parts = job_url.split("/jobs/", 1)
+    if len(parts) < 2:
+        return ""
+    return parts[1].split("/", 1)[0]
 
 
 def scrape(search_terms=None, hours_old=168, results_per_term=25):
@@ -167,7 +195,7 @@ def scrape(search_terms=None, hours_old=168, results_per_term=25):
                     "salary_max": "",
                     "salary_interval": "",
                     "date_posted": (updated or "")[:10],
-                    "description": job.get("preview_text", "")[:3000],
+                    "description": job.get("preview_text", "")[:3000],  # full HTML fetched in second pass below
                     "url": url,
                     "site": "clearancejobs",
                     "clearance_required": job.get("clearance", ""),
@@ -183,7 +211,20 @@ def scrape(search_terms=None, hours_old=168, results_per_term=25):
             time.sleep(1)
 
     all_jobs.sort(key=lambda x: x.get("date_posted", ""), reverse=True)
-    print(f"  [ClearanceJobs] Total unique jobs: {len(all_jobs)}")
+    print(f"  [ClearanceJobs] Total unique jobs: {len(all_jobs)}. Fetching full descriptions...")
+
+    # Second pass: fetch full HTML descriptions per job
+    for i, job in enumerate(all_jobs, 1):
+        job_id = extract_job_id(job.get("url", ""))
+        if not job_id:
+            continue
+        full = fetch_full_description(session, job_id)
+        if full:
+            job["description"] = full
+        if i % 25 == 0:
+            print(f"    [ClearanceJobs] Fetched {i}/{len(all_jobs)} descriptions")
+        time.sleep(0.2)
+
     return all_jobs
 
 
