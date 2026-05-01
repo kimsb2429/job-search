@@ -36,7 +36,7 @@ TOKEN_FILE = "token.json"
 HEADERS = [
     "Title", "Company", "Location", "Remote", "Salary Min", "Salary Max",
     "Date Posted", "Score", "Score Reasoning", "URL", "Site",
-    "Status", "Applied Date", "Notes", "Scraped At",
+    "Status", "Applied Date", "Notes", "Scraped At", "Description",
 ]
 
 
@@ -111,6 +111,25 @@ def get_or_create_sheet(sheets_svc, drive_svc, sheet_id=None):
     return sid, url
 
 
+def ensure_headers(sheets_svc, sheet_id):
+    """Idempotently bring the sheet's header row up to HEADERS (appends any new columns at the end)."""
+    result = sheets_svc.spreadsheets().values().get(
+        spreadsheetId=sheet_id, range="Applications!1:1",
+    ).execute()
+    current = (result.get("values") or [[]])[0]
+    if current == HEADERS:
+        return
+    if len(current) >= len(HEADERS) and current[:len(HEADERS)] == HEADERS:
+        return
+    sheets_svc.spreadsheets().values().update(
+        spreadsheetId=sheet_id,
+        range="Applications!A1",
+        valueInputOption="RAW",
+        body={"values": [HEADERS]},
+    ).execute()
+    print(f"Updated header row to {len(HEADERS)} columns.")
+
+
 def get_existing_urls(sheets_svc, sheet_id):
     result = sheets_svc.spreadsheets().values().get(
         spreadsheetId=sheet_id,
@@ -153,6 +172,7 @@ def append_jobs(sheets_svc, sheet_id, jobs, existing_urls):
             "",
             "",
             clean(j.get("scraped_at")),
+            clean(j.get("description")),
         ])
 
     sheets_svc.spreadsheets().values().append(
@@ -188,6 +208,7 @@ def main():
     drive_svc = build("drive", "v3", credentials=creds)
 
     sheet_id, sheet_url = get_or_create_sheet(sheets_svc, drive_svc, args.sheet_id)
+    ensure_headers(sheets_svc, sheet_id)
     existing_urls = get_existing_urls(sheets_svc, sheet_id)
     added = append_jobs(sheets_svc, sheet_id, jobs, existing_urls)
 

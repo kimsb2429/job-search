@@ -23,6 +23,24 @@ from jobspy import scrape_jobs
 
 
 DEFAULT_SEARCH_TERMS = [
+    # Prioritized: AI engineer roles
+    "AI engineer remote",
+    "AI automation engineer remote",
+    "AI workflow engineer remote",
+    "AI operations engineer remote",
+    "AI integration engineer remote",
+    "AI applications engineer remote",
+    "AI platform engineer remote",
+    "applied AI engineer remote",
+    "generative AI engineer remote",
+    "LLM engineer remote",
+    "LLM applications engineer remote",
+    "agentic AI engineer remote",
+    "AI solutions engineer remote",
+    "automation engineer AI remote",
+    "fractional AI engineer",
+    "contract AI engineer remote",
+    # Data engineering (secondary)
     "data engineer remote",
     "data migration engineer remote",
     "data platform engineer remote",
@@ -34,17 +52,8 @@ DEFAULT_SEARCH_TERMS = [
     "AWS Glue data engineer",
     "Redshift data engineer",
     "PostgreSQL data engineer",
-    "AI automation engineer remote",
-    "AI workflow engineer remote",
-    "AI operations engineer remote",
-    "AI integration engineer remote",
-    "automation engineer AI remote",
-    "LLM engineer remote",
-    "AI engineer remote",
     "fractional data engineer",
-    "fractional AI engineer",
     "part time data engineer remote",
-    "contract AI engineer remote",
 ]
 
 DEFAULT_SITES = ["indeed", "glassdoor", "zip_recruiter"]

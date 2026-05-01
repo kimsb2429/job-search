@@ -27,6 +27,7 @@ Requires:
 
 import argparse
 import base64
+import html
 import os
 import sys
 import time
@@ -54,6 +55,9 @@ TOKEN_FILE = "token.json"
 SHEET_TAB = "Applications"
 DEFAULT_TO = "kimsb2429@gmail.com"
 STALE_DAYS = 6  # Re-check pending jobs older than this
+
+# Secondary digest: full JDs of new ClearanceJobs roles to a partner inbox
+CJ_DIGEST_TO = "catsdontfight@gmail.com"
 
 
 def get_creds():
@@ -87,7 +91,7 @@ def get_all_rows(sheets_svc, sheet_id):
     """Return (headers, list of (row_number, row_dict)) for all data rows."""
     result = sheets_svc.spreadsheets().values().get(
         spreadsheetId=sheet_id,
-        range=f"{SHEET_TAB}!A1:O500",
+        range=f"{SHEET_TAB}!A1:P500",
     ).execute()
     rows = result.get("values", [])
     if not rows:
@@ -310,6 +314,86 @@ def build_email_html(new_jobs, stale_jobs, apps_script_url, sheet_id, sheet_url)
     """
 
 
+def filter_clearancejobs(rows):
+    """Keep only rows where Site == 'clearancejobs' (case-insensitive)."""
+    return [(row, job) for row, job in rows
+            if job.get("Site", "").strip().lower() == "clearancejobs"]
+
+
+def render_jd_html(description):
+    """CJ descriptions are pre-rendered HTML. Embed as-is in a styled wrapper. Plain-text falls
+    back to a <pre> block so newlines render."""
+    if not description:
+        return "<p style='color:#888;font-style:italic;'>(no description captured)</p>"
+    if "<" in description and ">" in description:
+        return (
+            "<div style='font-size:14px;line-height:1.5;color:#24292f;'>"
+            f"{description}"
+            "</div>"
+        )
+    return (
+        "<pre style='white-space:pre-wrap;font-family:inherit;font-size:14px;line-height:1.5;"
+        f"color:#24292f;margin:0;'>{html.escape(description)}</pre>"
+    )
+
+
+def build_cj_digest_html(cj_jobs):
+    today = date.today().strftime("%B %d, %Y")
+    sections = []
+    for _, job in cj_jobs:
+        title = html.escape(job.get("Title", "?"))
+        company = html.escape(job.get("Company", "?"))
+        location = html.escape(job.get("Location", ""))
+        url = job.get("URL", "")
+        url_attr = html.escape(url, quote=True)
+        loc_html = f" &middot; {location}" if location else ""
+        sections.append(f"""
+        <div style="border:1px solid #e1e4e8;border-radius:8px;padding:20px;margin-bottom:24px;background:#fff;">
+          <h3 style="margin:0 0 6px;font-size:18px;color:#24292f;">{title}</h3>
+          <div style="color:#555;font-size:14px;margin-bottom:10px;">{company}{loc_html}</div>
+          <div style="margin-bottom:16px;">
+            <a href="{url_attr}" style="color:#0969da;font-size:14px;word-break:break-all;">{url_attr}</a>
+          </div>
+          <hr style="border:none;border-top:1px solid #eee;margin:12px 0;">
+          {render_jd_html(job.get("Description", ""))}
+        </div>
+        """)
+    return f"""
+    <html>
+    <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;
+                 max-width:720px;margin:0 auto;padding:24px;background:#f6f8fa;color:#24292f;">
+      <h2 style="margin:0 0 8px;">ClearanceJobs digest &mdash; {today}</h2>
+      <p style="color:#555;margin:0 0 20px;">{len(cj_jobs)} new ClearanceJobs role{'s' if len(cj_jobs) != 1 else ''} this week.</p>
+      {''.join(sections)}
+    </body>
+    </html>
+    """
+
+
+def send_cj_digest(gmail_svc, new_jobs, dry_run=False):
+    """Send a separate Gmail email of new ClearanceJobs jobs (with full JDs) to CJ_DIGEST_TO."""
+    cj_jobs = filter_clearancejobs(new_jobs)
+    if not cj_jobs:
+        print("No new ClearanceJobs roles — skipping CJ digest.")
+        return
+
+    subject = f"ClearanceJobs digest — {len(cj_jobs)} new ({date.today().strftime('%b %d')})"
+    html_body = build_cj_digest_html(cj_jobs)
+
+    if dry_run:
+        print(f"[dry-run] Would send CJ digest to {CJ_DIGEST_TO}: {subject}")
+        for _, job in cj_jobs:
+            has_jd = "yes" if job.get("Description") else "NO"
+            print(f"  - {job.get('Title')} @ {job.get('Company')} (JD: {has_jd})")
+        return
+
+    try:
+        send_email(gmail_svc, CJ_DIGEST_TO, subject, html_body)
+        print(f"CJ digest sent to {CJ_DIGEST_TO} ({len(cj_jobs)} jobs).")
+    except Exception as e:
+        print(f"Error: CJ digest send failed: {e}", file=sys.stderr)
+
+
 def send_email(gmail_svc, to, subject, html_body):
     msg = MIMEMultipart("alternative")
     msg["To"] = to
@@ -387,11 +471,14 @@ def main():
                 print(f"  Row {row}: [{job.get('Score')}] {job.get('Title')} @ {job.get('Company')}")
         if expired_rows:
             print(f"Would mark {len(expired_rows)} rows as Expired.")
+        send_cj_digest(gmail_svc, new_jobs, dry_run=True)
         print("(dry run — no email sent, sheet not updated)")
         return
 
     send_email(gmail_svc, args.to, subject, html)
     print(f"Email sent to {args.to}")
+
+    send_cj_digest(gmail_svc, new_jobs)
 
     if new_jobs:
         mark_pending(sheets_svc, sheet_id, [row for row, _ in new_jobs])

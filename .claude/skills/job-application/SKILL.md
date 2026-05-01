@@ -44,7 +44,7 @@ Output: `.tmp/jobs_raw.json`
 **ClearanceJobs auth:** Uses `CJ_USERNAME` and `CJ_PASSWORD` from `.env`. Logs in fresh every run — no manual cookie management needed.
 
 **Notes:**
-- Default search terms: "data engineer remote", "data migration engineer remote", "ETL engineer remote", "data architect remote", "Snowflake data engineer", "Databricks data engineer", "dbt data engineer", "Kafka data engineer", "Airflow data engineer", "AI automation engineer remote"
+- Default search terms: AI engineer roles prioritized first ("AI engineer remote", "AI automation engineer remote", "applied AI engineer remote", "generative AI engineer remote", "LLM engineer remote", "agentic AI engineer remote", ...), then data engineering. See `DEFAULT_SEARCH_TERMS` in `job_scraper.py` for the full list.
 - Add/remove terms by editing `DEFAULT_SEARCH_TERMS` in `job_scraper.py`
 - `--hours 72` = jobs posted in the last 3 days. Use `--hours 168` for a full week.
 - Indeed has no rate limiting currently. No proxy needed for normal use.
